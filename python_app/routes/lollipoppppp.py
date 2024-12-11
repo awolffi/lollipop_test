@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
 import random
-from python_app.player_class import player
+from python_app.player_class import player, create_player_object
 
 lollipop_blueprint = Blueprint('lollipop', __name__)
+
 
 combat_state = {}
 
@@ -86,71 +87,14 @@ def combat_step():
 
 @lollipop_blueprint.route('/api/balance', methods=['GET'])
 def get_balance():
-    return jsonify({"success": True, "balance": player.get_balance()})
-
-@lollipop_blueprint.route('/ring_pop', methods=['GET'])
-def ring_pop():
     try:
-        random_bucks = random.randint(1, 1500)
-        player.update_balance(random_bucks)
-        return jsonify({"status": "success", "message": f"You got {random_bucks}€", "balance": player.get_balance()})
+        return jsonify({"success": True, "balance": player.get_balance()})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@lollipop_blueprint.route('/moomin', methods=['GET'])
-def suck_moomin():
-    try:
-        decision = request.args.get('stop_sucking', 'false').lower() == 'true'
-        if decision:
-            return jsonify({"status": "success", "message": "You stopped sucking and avoided conflict."})
-        else:
-            fighter, enemy = get_combatants(salvia_mode=False)
-            combat_state.update({"fighter": fighter, "enemy": enemy})
-            return combat_step()
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@lollipop_blueprint.route('/jolly', methods=['GET'])
-def suck_jolly():
-    try:
-        random_money = random.randint(100, 300)
-        player.update_balance(random_money)
-        return jsonify({"status": "success", "message": f"You received {random_money}€", "balance": player.get_balance()})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@lollipop_blueprint.route('/john', methods=['POST'])
-def suck_john():
-    try:
-        accept_offer = request.json.get('accept_offer', False)
-        if accept_offer:
-            player.death("Lost while being stabbed in a back alley.")
-            return jsonify({"status": "fail", "message": "You were stabbed in a back alley."})
-        else:
-            return jsonify({"status": "success", "message": "You denied the offer and survived."})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@lollipop_blueprint.route('/salvia', methods=['GET'])
-def suck_salvia():
-    try:
-        fighter, enemy = get_combatants(salvia_mode=True)
-        combat_state.update({"fighter": fighter, "enemy": enemy})
-        return combat_step()
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-@lollipop_blueprint.route('/chupa', methods=['GET'])
-def suck_chupa():
-    try:
-        black_money = random.randint(500, 1000)
-        player.update_balance(-black_money)
-        return jsonify({"status": "fail", "message": f"You lost {black_money}€", "balance": player.get_balance()})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
 
 @lollipop_blueprint.route('/lollipop/select', methods=['POST'])
 def lollipop_action():
+    from python_app.player_class import player
     try:
         data = request.json  # Ensure JSON payload
         lollipop_choice = data.get('lollipop', '').upper()
@@ -167,5 +111,101 @@ def lollipop_action():
         if lollipop_choice in actions:
             return actions[lollipop_choice]()
         return jsonify({"status": "error", "message": f"Invalid lollipop choice: {lollipop_choice}"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@lollipop_blueprint.route('/ring_pop', methods=['POST'])
+def ring_pop():
+    """
+    Ringpop logic: Ask the player if they want to accept a random amount of money.
+    """
+    from python_app.player_class import player
+    try:
+        data = request.json
+        accept_offer = data.get("accept_offer", None)  # Get user decision (yes/no)
+
+        if accept_offer is None:
+            # Initial offer
+            random_bucks = random.randint(100, 1500)
+            return jsonify({
+                "status": "offer",
+                "message": f"You've been offered €{random_bucks}. Do you accept?",
+                "offer": random_bucks
+            })
+
+        if accept_offer:
+            # User accepted the offer
+            offer_amount = data.get("offer", 0)
+            player.update_balance(offer_amount)
+            return jsonify({
+                "status": "success",
+                "message": f"You accepted the offer and received €{offer_amount}.",
+                "balance": player.get_balance()
+            })
+        else:
+            # User rejected the offer
+            return jsonify({
+                "status": "rejected",
+                "message": "You rejected the offer.",
+                "balance": player.get_balance()
+            })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@lollipop_blueprint.route('/moomin', methods=['GET'])
+def suck_moomin():
+    from python_app.player_class import player
+    try:
+        decision = request.args.get('stop_sucking', 'false').lower() == 'true'
+        if decision:
+            return jsonify({"status": "success", "message": "You stopped sucking and avoided conflict."})
+        else:
+            fighter, enemy = get_combatants(salvia_mode=False)
+            combat_state.update({"fighter": fighter, "enemy": enemy})
+            return combat_step()
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@lollipop_blueprint.route('/jolly', methods=['GET'])
+def suck_jolly():
+    from python_app.player_class import player
+    try:
+        random_money = random.randint(100, 300)
+        player.update_balance(random_money)
+        return jsonify({"status": "success", "message": f"You received {random_money}€", "balance": player.get_balance()})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@lollipop_blueprint.route('/john', methods=['POST'])
+def suck_john():
+    from python_app.player_class import player
+    try:
+        accept_offer = request.json.get('accept_offer', False)
+        if accept_offer:
+            player.death("Lost while being stabbed in a back alley.")
+            return jsonify({"status": "fail", "message": "You were stabbed in a back alley."})
+        else:
+            return jsonify({"status": "success", "message": "You denied the offer and survived."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@lollipop_blueprint.route('/salvia', methods=['GET'])
+def suck_salvia():
+    from python_app.player_class import player
+    try:
+        fighter, enemy = get_combatants(salvia_mode=True)
+        combat_state.update({"fighter": fighter, "enemy": enemy})
+        return combat_step()
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@lollipop_blueprint.route('/chupa', methods=['GET'])
+def suck_chupa():
+    from python_app.player_class import player
+    try:
+        black_money = random.randint(500, 1000)
+        player.update_balance(-black_money)
+        return jsonify({"status": "fail", "message": f"You lost {black_money}€", "balance": player.get_balance()})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

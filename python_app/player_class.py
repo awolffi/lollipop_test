@@ -26,6 +26,7 @@ class Player:
     def update_balance(self, amount):
         self.balance += amount
         update_money(self.name, self.balance)
+        return self.balance
 
     def update_carbon(self, amount):
         self.carbon += amount
