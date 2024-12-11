@@ -1,97 +1,119 @@
-'use strict'
+// Function to create modals dynamically
+function createModal(id, title, message, callback = null) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = id;
 
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('${id}')">&times;</span>
+            <h2>${title}</h2>
+            <p id="${id}-message">${message}</p>
+            <button id="${id}-button">OK</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    if (callback) {
+        document.getElementById(`${id}-button`).addEventListener('click', () => {
+            callback();
+            closeModal(id);
+        });
+    } else {
+        document.getElementById(`${id}-button`).addEventListener('click', () => closeModal(id));
+    }
+}
+
+// Show a modal
+function showModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// Close a modal
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// API call to handle lollipop actions
+async function lollipopAction(lollipop, callback = null) {
+    try {
+        const response = await fetch('/lollipop/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lollipop })
+        });
+        const result = await response.json();
+        if (callback) callback(result);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Individual lollipop action handlers
+function handleRingPop() {
+    lollipopAction('RINGPOP', (result) => {
+        document.getElementById('ringpop-modal-message').innerText = result.message;
+        showModal('ringpop-modal');
+    });
+}
+
+function handleMoomin() {
+    lollipopAction('MOOMIN', (result) => {
+        document.getElementById('moomin-modal-message').innerText = result.message;
+        showModal('moomin-modal');
+    });
+}
+
+function handleJollyRancher() {
+    lollipopAction('JOLLY RANCHER', (result) => {
+        document.getElementById('jolly-modal-message').innerText = result.message;
+        showModal('jolly-modal');
+    });
+}
+
+function handleJohnPlayer() {
+    lollipopAction('JOHN PLAYER SPECIAL', (result) => {
+        document.getElementById('john-modal-message').innerText = result.message;
+        showModal('john-modal');
+    });
+}
+
+function handleSalviaPop() {
+    lollipopAction('SALVIA POP', (result) => {
+        document.getElementById('salvia-modal-message').innerText = result.message;
+        showModal('salvia-modal');
+    });
+}
+
+function handleChupaChups() {
+    lollipopAction('CHUPACHUPS', (result) => {
+        document.getElementById('chupa-modal-message').innerText = result.message;
+        showModal('chupa-modal');
+    });
+}
+
+// Initialize modals and events
 document.addEventListener('DOMContentLoaded', () => {
-    const resultContainer = document.getElementById('lollipop_result');
-    const businessmanModal = document.getElementById('businessman-modal');
-    const randomMoneyElement = document.getElementById('random-money');
-    const acceptButton = document.getElementById('accept-offer');
-    const declineButton = document.getElementById('decline-offer');
+    // Create modals
+    createModal('ringpop-modal', 'Ringpop', 'Loading...');
+    createModal('moomin-modal', 'Moomin', 'Loading...');
+    createModal('jolly-modal', 'Jolly Rancher', 'Loading...');
+    createModal('john-modal', 'John Player Special', 'Loading...');
+    createModal('salvia-modal', 'Salvia Pop', 'Loading...');
+    createModal('chupa-modal', 'ChupaChups', 'Loading...');
 
-    // Helper function to make GET requests
-    async function getRequest(url) {
-        try {
-            const response = await fetch(url);
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: 'Network error' };
-        }
-    }
-
-    // Helper function to make POST requests
-    async function postRequest(url, data = {}) {
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: 'Network error' };
-        }
-    }
-
-    // Update the result container with a message
-    function updateResult(message) {
-        resultContainer.textContent = message;
-    }
-
-    // Event listeners for each lollipop button
-    document.getElementById('button_1').addEventListener('click', async () => {
-        // Ringpop logic
-        const data = await getRequest('/api/ring-pop');
-        if (data.money) {
-            randomMoneyElement.textContent = data.money;
-            businessmanModal.style.display = 'block';
-        } else {
-            updateResult('Failed to fetch the Ringpop offer.');
-        }
-    });
-
-    acceptButton.addEventListener('click', async () => {
-        const response = await postRequest('/api/ring-pop/accept');
-        businessmanModal.style.display = 'none';
-        if (response.success) {
-            updateResult('You accepted the offer and added money to your balance!');
-        } else {
-            updateResult('Something went wrong when accepting the offer.');
-        }
-    });
-
-    declineButton.addEventListener('click', () => {
-        businessmanModal.style.display = 'none';
-        updateResult('You declined the offer.');
-    });
-
-    document.getElementById('button_2').addEventListener('click', async () => {
-        // Moomin logic
-        const response = await getRequest('/moomin');
-        updateResult(response.message || 'Something went wrong with the Moomin interaction.');
-    });
-
-    document.getElementById('button_3').addEventListener('click', async () => {
-        // Jolly Rancher logic
-        const response = await getRequest('/jolly');
-        updateResult(response.message || 'Something went wrong with the Jolly Rancher interaction.');
-    });
-
-    document.getElementById('button_4').addEventListener('click', async () => {
-        // John Player Special logic
-        const response = await getRequest('/john_player');
-        updateResult(response.message || 'Something went wrong with the John Player interaction.');
-    });
-
-    document.getElementById('button_5').addEventListener('click', async () => {
-        // Salvia Pop logic
-        const response = await getRequest('/salvia');
-        updateResult(response.message || 'Something went wrong with the Salvia Pop interaction.');
-    });
-
-    document.getElementById('button_6').addEventListener('click', async () => {
-        // ChupaChups logic
-        const response = await getRequest('/chupa');
-        updateResult(response.message || 'Something went wrong with the ChupaChups interaction.');
-    });
+    // Event listeners for buttons
+    document.getElementById('ringpop-btn').addEventListener('click', handleRingPop);
+    document.getElementById('moomin-btn').addEventListener('click', handleMoomin);
+    document.getElementById('jolly-btn').addEventListener('click', handleJollyRancher);
+    document.getElementById('john-btn').addEventListener('click', handleJohnPlayer);
+    document.getElementById('salvia-btn').addEventListener('click', handleSalviaPop);
+    document.getElementById('chupa-btn').addEventListener('click', handleChupaChups);
 });
