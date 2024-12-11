@@ -2,7 +2,7 @@ import random
 import time
 from flask import Blueprint, jsonify, request
 #from python_app.utilities import anim_print, clear_window  # these are not needed but Just in case u know
-from python_app.player_class import player
+from python_app.player_class import player, create_player_object
 
 # Create a Flask Blueprint thingy
 lollipop_blueprint = Blueprint('lollipop', __name__)
@@ -130,6 +130,7 @@ def suck_chupa():
 # Lollipop Selector Route
 @lollipop_blueprint.route('/select', methods=['POST'])
 def lollipop_action():
+    create_player_object('test', 1000, 100, 3, 0, 'helsinki-Vantaa', 'Finland', 'large_airport')
     from python_app.player_class import player
     try:
         data = request.json
