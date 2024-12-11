@@ -13,13 +13,23 @@
     <h1>🍭 Lollipop Adventure 🍭</h1>
     <p>Choose a lollipop to begin your adventure!</p>
 
-    
-    <button id="button_1">Ringpop</button>
-    <button id="button_2">Moomin</button>
-    <button id="button_3">Jolly Rancher</button>
-    <button id="button_4">John's Special</button>
-    <button id="button_5">Salvia Pop</button>
-    <button id="button_6">ChupaChups</button>
+    <div id="lollipo-container">
+        <button id="button_1">Ringpop</button>
+        <button id="button_2">Moomin</button>
+        <button id="button_3">Jolly Rancher</button>
+        <button id="button_4">John's Special</button>
+        <button id="button_5">Salvia Pop</button>
+        <button id="button_6">ChupaChups</button>
+    </div>
+
+    <!-- Modal for Japanese businessman interaction -->
+    <div id="businessman-modal" style="display: none;">
+        <div class="modal-content">
+            <p>You meet a Japanese businessman. He offers you <span id="random-money"></span> dollars. Do you accept?</p>
+            <button id="accept-offer">Yes</button>
+            <button id="decline-offer">No</button>
+        </div>
+    </div>
 
     
     <h2>📝 Result</h2>

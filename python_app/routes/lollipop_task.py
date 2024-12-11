@@ -67,14 +67,22 @@ def start_fighting():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# Ringpop Route
-@lollipop_blueprint.route('/ring_pop', methods=['GET'])
-def ring_pop():
-    from python_app.player_class import player
-    random_bucks = random.randint(1, 1500)
-    player.update_balance(random_bucks)
-    return jsonify({"status": "success", "message": f"You got {random_bucks}€", "balance": player.get_balance()})
 
+# Ringpop Route
+# Randomized money offer
+@lollipop_blueprint.route('/api/ring-pop', methods=['GET'])
+def ring_pop_offer():
+    money = random.randint(100, 1000)  # Randomize the amount
+    return jsonify({"money": money})
+
+# Handle acceptance of money
+@lollipop_blueprint.route('/api/ring-pop/accept', methods=['POST'])
+def accept_ring_pop_offer():
+    from python_app.player_class import player
+
+    offer = random.randint(100, 1000)  # This should match the frontend logic
+    player.update_balance(offer)  # Update the balance in the Player class
+    return jsonify({"success": True})
 
 # Moomin Route
 @lollipop_blueprint.route('/moomin', methods=['GET'])
