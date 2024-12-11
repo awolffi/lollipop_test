@@ -1,95 +1,137 @@
 'use strict';
 
-// Get references to the buttons and result display area
-const button_1 = document.getElementById('button_1');
-const button_2 = document.getElementById('button_2');
-const button_3 = document.getElementById('button_3');
-const button_4 = document.getElementById('button_4');
-const button_5 = document.getElementById('button_5');
-const button_6 = document.getElementById('button_6');
-const lollipop_result = document.getElementById('lollipop_result');
+// Function to create modals dynamically without innerHTML
+function createModal(id, title, message, callback = null) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = id;
 
-// List of available lollipop options
-const lollipop_brands = [
-    "RINGPOP", 
-    "MOOMIN", 
-    "JOLLY RANCHER", 
-    "JOHN'S SPECIAL", 
-    "SALVIA POP", 
-    "CHUPACHUPS"
-];
+    const modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
 
-// Utility function to make an API call and return the data
-async function getData(url) {
+    const closeButton = document.createElement('span');
+    closeButton.className = 'close-button';
+    closeButton.innerHTML = '&times;';
+    closeButton.addEventListener('click', () => closeModal(id));
+
+    const modalTitle = document.createElement('h2');
+    modalTitle.textContent = title;
+
+    const modalMessage = document.createElement('p');
+    modalMessage.id = `${id}-message`;
+    modalMessage.textContent = message;
+
+    const okButton = document.createElement('button');
+    okButton.id = `${id}-button`;
+    okButton.textContent = 'OK';
+    okButton.addEventListener('click', () => {
+        if (callback) callback();
+        closeModal(id);
+    });
+
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(modalTitle);
+    modalContent.appendChild(modalMessage);
+    modalContent.appendChild(okButton);
+    modal.appendChild(modalContent);
+
+    document.body.appendChild(modal);
+}
+
+// Show a modal
+function showModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+// Close a modal
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Utility function to fetch the player's balance and update the display
+async function updateBalance() {
     try {
-        const response = await fetch(url);
+        const response = await fetch('/api/balance');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch balance. Server responded with status: ${response.status}`);
+        }
+
         const data = await response.json();
-        console.log('Response from API:', data);
-        return data;
+        if (data.success) {
+            document.getElementById('balance').innerText = data.balance;
+        } else {
+            console.error('Failed to fetch balance:', data.message);
+            alert('Error fetching balance: ' + data.message);
+        }
     } catch (error) {
-        console.error('Error fetching data from API:', error);
-        return { status: 'error', message: 'Unable to reach the server.' };
+        console.error('Error fetching balance:', error);
+        alert('Unable to fetch balance. Please try again later.');
     }
 }
 
-// Utility function to send POST request with JSON data
-async function postData(url, data) {
+// Handle specific lollipop actions
+async function handleLollipopAction(lollipop, functionality) {
     try {
-        const response = await fetch(url, {
+        const userDecision = await functionality();
+        if (!userDecision) return;
+
+        const response = await fetch('/lollipop/select', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lollipop })
         });
-        const result = await response.json();
-        console.log('Response from API:', result);
-        return result;
+
+        const data = await response.json();
+        alert(data.message);
+
+        if (data.balance !== undefined) {
+            updateBalance();
+        }
     } catch (error) {
-        console.error('Error posting data to API:', error);
-        return { status: 'error', message: 'Unable to reach the server.' };
+        console.error(`Error with ${lollipop}:`, error);
+        alert(`An error occurred with ${lollipop}: ${error.message}`);
     }
 }
 
-// Populate buttons with lollipop options
-function populateButtons() {
-    button_1.innerHTML = `Lollipop: ${lollipop_brands[0]}`;
-    button_2.innerHTML = `Lollipop: ${lollipop_brands[1]}`;
-    button_3.innerHTML = `Lollipop: ${lollipop_brands[2]}`;
-    button_4.innerHTML = `Lollipop: ${lollipop_brands[3]}`;
-    button_5.innerHTML = `Lollipop: ${lollipop_brands[4]}`;
-    button_6.innerHTML = `Lollipop: ${lollipop_brands[5]}`;
+// Add event listeners for lollipop buttons
+document.addEventListener('DOMContentLoaded', () => {
+    // Add event listeners for lollipop actions
+    document.getElementById('ringpop-btn').addEventListener('click', () => handleLollipopAction('RINGPOP', async () => {
+        alert('You chose Ringpop. A Japanese businessman offers you €1500.');
+        return confirm('Do you accept the offer?');
+    }));
 
-    // Attach the lollipop names as attributes
-    button_1.value = lollipop_brands[0];
-    button_2.value = lollipop_brands[1];
-    button_3.value = lollipop_brands[2];
-    button_4.value = lollipop_brands[3];
-    button_5.value = lollipop_brands[4];
-    button_6.value = lollipop_brands[5];
-}
+    document.getElementById('moomin-btn').addEventListener('click', () => handleLollipopAction('MOOMIN', async () => {
+        alert('You chose the Moomin lollipop. People are agitated around you.');
+        return confirm('Do you stop sucking?');
+    }));
 
-// Event listener for button clicks
-async function handleLollipopClick(lollipop) {
-    const data = { lollipop: lollipop };
-    const result = await postData('http://127.0.0.1:4000/lollipop/select', data);
-    
-    if (result.status === 'success') {
-        lollipop_result.innerText = result.message;
-    } else if (result.status === 'fail') {
-        lollipop_result.innerText = `Failure: ${result.message}`;
-    } else {
-        lollipop_result.innerText = `Error: ${result.message}`;
-    }
-}
+    document.getElementById('jolly-btn').addEventListener('click', () => handleLollipopAction('JOLLY RANCHER', async () => {
+        alert('You chose Jolly Rancher. A group mocks you but gives you money.');
+        return true;
+    }));
 
-// Attach event listeners to each button
-button_1.addEventListener('click', () => handleLollipopClick(button_1.value));
-button_2.addEventListener('click', () => handleLollipopClick(button_2.value));
-button_3.addEventListener('click', () => handleLollipopClick(button_3.value));
-button_4.addEventListener('click', () => handleLollipopClick(button_4.value));
-button_5.addEventListener('click', () => handleLollipopClick(button_5.value));
-button_6.addEventListener('click', () => handleLollipopClick(button_6.value));
+    document.getElementById('john-btn').addEventListener('click', () => handleLollipopAction('JOHN PLAYER SPECIAL', async () => {
+        alert('You chose John Player Special. A stranger wants your lollipop.');
+        return confirm('Do you give them the lollipop?');
+    }));
 
-// Call this to set up the lollipop button options on page load
-populateButtons();
+    document.getElementById('salvia-btn').addEventListener('click', () => handleLollipopAction('SALVIA POP', async () => {
+        alert('You chose Salvia Pop. You feel sugar rushed and confused.');
+        return true;
+    }));
+
+    document.getElementById('chupa-btn').addEventListener('click', () => handleLollipopAction('CHUPACHUPS', async () => {
+        alert('You chose ChupaChups and lost your wallet.');
+        return true;
+    }));
+
+    // Fetch and display the balance on page load
+    updateBalance();
+});

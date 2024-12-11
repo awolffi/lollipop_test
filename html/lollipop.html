@@ -3,30 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lollipop Adventure</title>
-    <!-- Link to the CSS file if needed -->
-    <link rel="stylesheet" href="css/main_style.css">
+    <title>Lollipop Game</title>
+    <link rel="stylesheet" href="css/lollipop.css">
     <script src="../javascript/lollipop.js" defer></script>
 </head>
 <body>
-
-    <h1>🍭 Lollipop Adventure 🍭</h1>
-    <p>Choose a lollipop to begin your adventure!</p>
-
-    
-    <button id="button_1">Ringpop</button>
-    <button id="button_2">Moomin</button>
-    <button id="button_3">Jolly Rancher</button>
-    <button id="button_4">John's Special</button>
-    <button id="button_5">Salvia Pop</button>
-    <button id="button_6">ChupaChups</button>
-
-    
-    <h2>📝 Result</h2>
-    <div id="lollipop_result" style="border: 1px solid #333; padding: 10px; margin-top: 10px;">
-        Click a lollipop to see the result here.
+    <h1>Lollipop Game</h1>
+    <div id="balance-container">
+        <h2>Your Balance: <span id="balance">0</span> €</h2>
     </div>
-
-    
+    <div class="button-container">
+        <button id="ringpop-btn">Ringpop</button>
+        <button id="moomin-btn">Moomin</button>
+        <button id="jolly-btn">Jolly Rancher</button>
+        <button id="john-btn">John Player Special</button>
+        <button id="salvia-btn">Salvia Pop</button>
+        <button id="chupa-btn">ChupaChups</button>
+    </div>
+    <div id="combat-container" class="hidden">
+        <h2>Combat</h2>
+        <div>
+            <p id="player-health">Player Health: 100</p>
+            <p id="enemy-health">Enemy Health: 100</p>
+        </div>
+        <div class="combat-buttons">
+            <button id="attack1">Lollipop Eye Poke</button>
+            <button id="attack2">Lollipop Throw</button>
+            <button id="attack3">Nut Cracker</button>
+        </div>
+        <div id="combat-log"></div>
+    </div>
 </body>
 </html>

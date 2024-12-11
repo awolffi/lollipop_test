@@ -26,6 +26,7 @@ class Player:
     def update_balance(self, amount):
         self.balance += amount
         update_money(self.name, self.balance)
+        return self.balance
 
     def update_carbon(self, amount):
         self.carbon += amount
@@ -54,6 +55,9 @@ class Player:
         if bet>self.balance:
             return {"Error": "Insufficient funds"}
         return None
+
+    def get_balance(self):
+        return self.balance
     
 # Temp Player for testing
 #player = Player('test', 1000, 100, 0, 0, 'Helsinki-Vantaa', 'Finland', 'large_airport')
