@@ -5,6 +5,16 @@ from python_app.player_class import create_player_object, player
 # Define a Flask Blueprint
 lollipop_blueprint = Blueprint('lollipop', __name__)
 
+@lollipop_blueprint.route('/api/balance', methods=['GET'])
+def get_balance():
+    """Returns the player's current balance."""
+    from python_app.player_class import player  # Ensure player instance is accessible
+    try:
+        current_balance = player.get_balance()  # Call the new get_balance method
+        return jsonify({"success": True, "balance": current_balance})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 # Helper functions
 def fight(fighter, enemy):
     """Simulate a turn-based fight between fighter and enemy."""
@@ -122,8 +132,9 @@ def suck_chupa():
     return jsonify({"status": "fail", "message": f"You lost {black_money}€"})
 
 
-@lollipop_blueprint.route('/select', methods=['POST'])
+@lollipop_blueprint.route('/lollipop/select', methods=['POST'])
 def lollipop_action():
+    """Handles lollipop selection and actions."""
     data = request.json
     lollipop_choice = data.get('lollipop', '').upper()
 
@@ -133,9 +144,10 @@ def lollipop_action():
         "JOLLY RANCHER": suck_jolly,
         "JOHN PLAYER SPECIAL": suck_john,
         "SALVIA POP": suck_salvia,
-        "CHUPACHUPS": suck_chupa,
+        "CHUPACHUPS": suck_chupa
     }
 
     if lollipop_choice in actions:
         return actions[lollipop_choice]()
     return jsonify({"status": "error", "message": "Invalid lollipop choice."}), 400
+

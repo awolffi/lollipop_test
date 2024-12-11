@@ -54,6 +54,9 @@ class Player:
         if bet>self.balance:
             return {"Error": "Insufficient funds"}
         return None
+
+    def get_balance(self):
+        return self.balance
     
 # Temp Player for testing
 #player = Player('test', 1000, 100, 0, 0, 'Helsinki-Vantaa', 'Finland', 'large_airport')
