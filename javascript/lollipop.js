@@ -57,14 +57,14 @@ function closeModal(id) {
 // Utility function to fetch the player's balance and update the display
 async function updateBalance() {
     try {
-        const response = await fetch(BALANCE_API); // Use the full path
+        const response = await fetch('/api/balance');
         if (!response.ok) {
             throw new Error(`Failed to fetch balance. Server responded with status: ${response.status}`);
         }
 
         const data = await response.json();
         if (data.success) {
-            document.getElementById('balance').innerText = data.balance;
+            document.getElementById('balance').innerText = `Balance: €${data.balance}`;
         } else {
             console.error('Failed to fetch balance:', data.message);
             alert('Error fetching balance: ' + data.message);
@@ -75,35 +75,67 @@ async function updateBalance() {
     }
 }
 
-// Handle specific lollipop actions with improved error handling and functionality
+// Combat Step Handler
+async function attackEnemy(action, salviaMode = false) {
+    try {
+        const response = await fetch('/combat_step', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, salvia_mode: salviaMode })
+        });
+        const result = await response.json();
+
+        if (result.status === 'win' || result.status === 'lose') {
+            alert(result.message);
+            document.getElementById('combat-log').textContent = '';
+            return; // End combat
+        }
+
+        // Update health and logs
+        document.getElementById('player-health').textContent = `Health: ${result.player_health}`;
+        document.getElementById('enemy-health').textContent = `Health: ${result.enemy_health}`;
+        document.getElementById('combat-log').textContent = result.last_action;
+
+    } catch (error) {
+        console.error('Error during combat:', error);
+    }
+}
+
+// Handle specific lollipop actions
 async function handleLollipopAction(lollipop, functionality) {
     try {
-        // Run the specific functionality for the lollipop (e.g., user input)
         const userDecision = await functionality();
-        if (!userDecision) return; // Exit if user cancels or doesn't proceed
+        if (!userDecision) return;
 
-        // Fetch backend response
         const response = await fetch('/lollipop/select', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ lollipop })
+            body: JSON.stringify({ lollipop }) // Ensure correct payload structure
         });
 
-        if (!response.ok) {
-            throw new Error(`Failed to perform action. Server responded with status: ${response.status}`);
-        }
-
         const data = await response.json();
-        const modalId = `${lollipop.toLowerCase().replace(' ', '-')}-modal`;
-        document.getElementById(`${modalId}-message`).textContent = data.message;
-        showModal(modalId);
+        alert(data.message);
 
-        updateBalance(); // Refresh the balance display
+        if (data.balance !== undefined) {
+            updateBalance();
+        }
     } catch (error) {
         console.error(`Error with ${lollipop}:`, error);
         alert(`An error occurred with ${lollipop}: ${error.message}`);
     }
 }
+
+// Event Listeners
+window.onload = () => {
+    // Combat UI Setup
+    document.getElementById('attack1').addEventListener('click', () => attackEnemy('Lollipop eye poke'));
+    document.getElementById('attack2').addEventListener('click', () => attackEnemy('Lollipop throw'));
+    document.getElementById('attack3').addEventListener('click', () => attackEnemy('Nut cracker'));
+
+    // Fetch and display the balance on page load
+    updateBalance();
+};
+
 
 // Lollipop-specific functionalities
 async function ringpopFunctionality() {
